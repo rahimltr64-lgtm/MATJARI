@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -12,6 +13,33 @@ import { FEATURES, FAQ, TESTIMONIALS, PLANS } from "../data";
 const iconMap: Record<string, any> = {
   Store, MessageCircle, MapPin, LayoutDashboard, Package, Tag, BarChart3, Smartphone, Zap
 };
+
+function FAQItem({ q, a }: { q: string; a: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="glass rounded-2xl overflow-hidden"
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-6 flex items-center justify-between text-right hover:bg-white/5 transition-colors"
+      >
+        <span className="font-bold text-lg">{q}</span>
+        <ChevronDown className={`w-5 h-5 transition-transform flex-shrink-0 ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+      <motion.div
+        initial={false}
+        animate={{ height: isOpen ? "auto" : 0 }}
+        className="overflow-hidden"
+      >
+        <p className="p-6 pt-0 text-dark-300 leading-relaxed">{a}</p>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 export function LandingPage() {
   return (
@@ -372,32 +400,3 @@ export function LandingPage() {
     </div>
   );
 }
-
-function FAQItem({ q, a }: { q: string; a: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      className="glass rounded-2xl overflow-hidden"
-    >
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-6 flex items-center justify-between text-right hover:bg-white/5 transition-colors"
-      >
-        <span className="font-bold text-lg">{q}</span>
-        <ChevronDown className={`w-5 h-5 transition-transform flex-shrink-0 ${isOpen ? "rotate-180" : ""}`} />
-      </button>
-      <motion.div
-        initial={false}
-        animate={{ height: isOpen ? "auto" : 0 }}
-        className="overflow-hidden"
-      >
-        <p className="p-6 pt-0 text-dark-300 leading-relaxed">{a}</p>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-import { useState } from "react";
