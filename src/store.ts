@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { toast } from "sonner";
 import type { Theme, User, Store, Product, Order, Coupon, Subscription, ChatMessage, Notification } from "./types";
 
 // Sample data for first-time users
@@ -277,51 +278,113 @@ export const useStore = create<AppState>()(
         });
       },
 
-      login: (user) => set({ currentUser: user }),
-      logout: () => set({ currentUser: null, currentStoreId: null }),
-      register: (user) => set({ currentUser: user }),
+      login: (user) => {
+        set({ currentUser: user });
+        toast.success(`مرحباً ${user.name}! تم تسجيل الدخول بنجاح.`);
+      },
+      logout: () => {
+        set({ currentUser: null, currentStoreId: null });
+        toast.info("تم تسجيل الخروج بنجاح");
+      },
+      register: (user) => {
+        set({ currentUser: user });
+        toast.success(`أهلاً بك ${user.name}! تم إنشاء حسابك بنجاح.`);
+      },
 
-      createStore: (store) => set((s) => ({ stores: [...s.stores, store] })),
-      updateStore: (id, updates) => set((s) => ({
-        stores: s.stores.map((st) => st.id === id ? { ...st, ...updates } : st)
-      })),
-      deleteStore: (id) => set((s) => ({
-        stores: s.stores.filter((st) => st.id !== id),
-        products: s.products.filter((p) => p.storeId !== id),
-        orders: s.orders.filter((o) => o.storeId !== id),
-      })),
+      createStore: (store) => {
+        set((s) => ({ stores: [...s.stores, store] }));
+        toast.success(`تم إنشاء متجر "${store.name}" بنجاح!`);
+      },
+      updateStore: (id, updates) => {
+        set((s) => ({
+          stores: s.stores.map((st) => st.id === id ? { ...st, ...updates } : st)
+        }));
+        toast.success("تم تحديث بيانات المتجر بنجاح");
+      },
+      deleteStore: (id) => {
+        set((s) => ({
+          stores: s.stores.filter((st) => st.id !== id),
+          products: s.products.filter((p) => p.storeId !== id),
+          orders: s.orders.filter((o) => o.storeId !== id),
+        }));
+        toast.success("تم حذف المتجر بنجاح");
+      },
       setCurrentStore: (id) => set({ currentStoreId: id }),
 
-      addProduct: (product) => set((s) => ({ products: [...s.products, product] })),
-      updateProduct: (id, updates) => set((s) => ({
-        products: s.products.map((p) => p.id === id ? { ...p, ...updates } : p)
-      })),
-      deleteProduct: (id) => set((s) => ({
-        products: s.products.filter((p) => p.id !== id)
-      })),
+      addProduct: (product) => {
+        set((s) => ({ products: [...s.products, product] }));
+        toast.success(`تم إضافة المنتج "${product.title}" بنجاح!`);
+      },
+      updateProduct: (id, updates) => {
+        set((s) => ({
+          products: s.products.map((p) => p.id === id ? { ...p, ...updates } : p)
+        }));
+        toast.success("تم تحديث المنتج بنجاح");
+      },
+      deleteProduct: (id) => {
+        set((s) => ({
+          products: s.products.filter((p) => p.id !== id)
+        }));
+        toast.success("تم حذف المنتج بنجاح");
+      },
 
-      addOrder: (order) => set((s) => ({ orders: [...s.orders, order] })),
-      updateOrder: (id, updates) => set((s) => ({
-        orders: s.orders.map((o) => o.id === id ? { ...o, ...updates } : o)
-      })),
+      addOrder: (order) => {
+        set((s) => ({ orders: [...s.orders, order] }));
+        toast.success(`تم استلام طلب جديد بقيمة ${order.total} د.ج`);
+      },
+      updateOrder: (id, updates) => {
+        set((s) => ({
+          orders: s.orders.map((o) => o.id === id ? { ...o, ...updates } : o)
+        }));
+        toast.info("تم تحديث حالة الطلب");
+      },
 
-      addCoupon: (coupon) => set((s) => ({ coupons: [...s.coupons, coupon] })),
-      updateCoupon: (id, updates) => set((s) => ({
-        coupons: s.coupons.map((c) => c.id === id ? { ...c, ...updates } : c)
-      })),
-      deleteCoupon: (id) => set((s) => ({
-        coupons: s.coupons.filter((c) => c.id !== id)
-      })),
+      addCoupon: (coupon) => {
+        set((s) => ({ coupons: [...s.coupons, coupon] }));
+        toast.success(`تم إنشاء كوبون ${coupon.code} بنجاح`);
+      },
+      updateCoupon: (id, updates) => {
+        set((s) => ({
+          coupons: s.coupons.map((c) => c.id === id ? { ...c, ...updates } : c)
+        }));
+        toast.success("تم تحديث الكوبون");
+      },
+      deleteCoupon: (id) => {
+        set((s) => ({
+          coupons: s.coupons.filter((c) => c.id !== id)
+        }));
+        toast.success("تم حذف الكوبون");
+      },
 
-      addSubscription: (sub) => set((s) => ({ subscriptions: [...s.subscriptions, sub] })),
-      updateSubscription: (id, updates) => set((s) => ({
-        subscriptions: s.subscriptions.map((sub) => sub.id === id ? { ...sub, ...updates } : sub)
-      })),
+      addSubscription: (sub) => {
+        set((s) => ({ subscriptions: [...s.subscriptions, sub] }));
+        toast.success(`تم تفعيل الاشتراك! كود التفعيل: ${sub.activationCode}`);
+      },
+      updateSubscription: (id, updates) => {
+        set((s) => ({
+          subscriptions: s.subscriptions.map((sub) => sub.id === id ? { ...sub, ...updates } : sub)
+        }));
+        toast.info("تم تحديث الاشتراك");
+      },
 
       addChatMessage: (msg) => set((s) => ({ chatMessages: [...s.chatMessages, msg] })),
       clearChat: () => set({ chatMessages: [] }),
 
-      addNotification: (notif) => set((s) => ({ notifications: [notif, ...s.notifications] })),
+      addNotification: (notif) => set((s) => {
+        // عرض toast للإشعارات الجديدة
+        setTimeout(() => {
+          if (notif.type === "error") {
+            toast.error(notif.title, { description: notif.message });
+          } else if (notif.type === "success") {
+            toast.success(notif.title, { description: notif.message });
+          } else if (notif.type === "warning") {
+            toast.warning(notif.title, { description: notif.message });
+          } else {
+            toast.info(notif.title, { description: notif.message });
+          }
+        }, 100);
+        return { notifications: [notif, ...s.notifications] };
+      }),
       markNotificationRead: (id) => set((s) => ({
         notifications: s.notifications.map((n) => n.id === id ? { ...n, read: true } : n)
       })),
