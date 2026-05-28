@@ -4,18 +4,20 @@ import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Store, Users, Package, ShoppingBag, DollarSign,
   TrendingUp, CheckCircle, XCircle, Eye, Trash2, Bell, Shield,
-  Activity, Database, Globe, Zap
+  Activity, Database, Globe, Zap, AlertCircle
 } from "lucide-react";
 import { Button } from "../components/Button";
-import { GlassCard, Badge } from "../components/UI";
+import { GlassCard, Badge, Modal } from "../components/UI";
 import { useStore, formatDZD, formatDate } from "../store";
+import { toast } from "sonner";
 
 type Tab = "overview" | "stores" | "users" | "orders" | "subscriptions" | "notifications";
 
 export function AdminPage() {
   const navigate = useNavigate();
-  const { currentUser, stores, orders, subscriptions, updateStore, addNotification } = useStore();
+  const { currentUser, stores, orders, subscriptions, updateStore, deleteStore, addNotification } = useStore();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   if (!currentUser || currentUser.role !== "admin") {
     navigate("/login");
@@ -24,6 +26,12 @@ export function AdminPage() {
 
   const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
   const activeStores = stores.filter((s) => s.status === "active").length;
+
+  const handleDeleteStore = (storeId: string) => {
+    deleteStore(storeId);
+    setShowDeleteConfirm(null);
+    toast.success("تم حذف المتجر بنجاح");
+  };
 
   const tabs = [
     { id: "overview" as Tab, label: "نظرة عامة", icon: LayoutDashboard },
@@ -203,7 +211,10 @@ export function AdminPage() {
                             <div className="flex gap-1">
                               {store.status !== "active" && (
                                 <button
-                                  onClick={() => updateStore(store.id, { status: "active" })}
+                                  onClick={() => {
+                                    updateStore(store.id, { status: "active" });
+                                    toast.success(`تم تفعيل متجر ${store.name}`);
+                                  }}
                                   className="p-2 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20"
                                   title="تفعيل"
                                 >
@@ -212,13 +223,23 @@ export function AdminPage() {
                               )}
                               {store.status === "active" && (
                                 <button
-                                  onClick={() => updateStore(store.id, { status: "suspended" })}
+                                  onClick={() => {
+                                    updateStore(store.id, { status: "suspended" });
+                                    toast.warning(`تم إيقاف متجر ${store.name}`);
+                                  }}
                                   className="p-2 rounded-lg bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"
                                   title="إيقاف"
                                 >
                                   <XCircle className="w-4 h-4" />
                                 </button>
                               )}
+                              <button
+                                onClick={() => setShowDeleteConfirm(store.id)}
+                                className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                                title="حذف"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                               <a
                                 href={`/store/${store.slug}`}
                                 target="_blank"
@@ -293,7 +314,7 @@ export function AdminPage() {
                         return (
                           <div key={sub.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
                             <div>
-                              <div className="font-bold">{store?.name}</div>
+                              <div className="font-bold">{store?.name || "متجر محذوف"}</div>
                               <div className="text-xs text-dark-400">{formatDate(sub.createdAt)}</div>
                             </div>
                             <div className="text-left">
@@ -319,6 +340,22 @@ export function AdminPage() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal isOpen={!!showDeleteConfirm} onClose={() => setShowDeleteConfirm(null)} title="تأكيد الحذف" size="sm">
+        <div className="text-center py-4">
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <p className="mb-6">هل أنت متأكد من حذف هذا المتجر؟ هذا الإجراء لا يمكن التراجع عنه، وسيتم حذف جميع المنتجات والطلبات المرتبطة به.</p>
+          <div className="flex gap-3">
+            <Button variant="secondary" onClick={() => setShowDeleteConfirm(null)} className="flex-1">
+              إلغاء
+            </Button>
+            <Button variant="primary" onClick={() => handleDeleteStore(showDeleteConfirm!)} className="flex-1 bg-red-500 hover:bg-red-600">
+              حذف
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -329,7 +366,10 @@ function NotificationManager() {
   const [sending, setSending] = useState(false);
 
   const handleSend = async () => {
-    if (!form.title || !form.message) return;
+    if (!form.title || !form.message) {
+      toast.error("الرجاء إدخال عنوان ونص الإشعار");
+      return;
+    }
     setSending(true);
     await new Promise((r) => setTimeout(r, 1000));
     stores.forEach((store) => {
@@ -343,7 +383,7 @@ function NotificationManager() {
         createdAt: Date.now(),
       });
     });
-    alert(`تم إرسال الإشعار إلى ${stores.length} متجر`);
+    toast.success(`تم إرسال الإشعار إلى ${stores.length} متجر`);
     setForm({ title: "", message: "", type: "info" });
     setSending(false);
   };
@@ -393,4 +433,4 @@ function NotificationManager() {
       </GlassCard>
     </div>
   );
-}
+                                                                                       }
