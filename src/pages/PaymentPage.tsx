@@ -5,6 +5,7 @@ import { CreditCard, Upload, CheckCircle2, Wallet, Sparkles, Copy, MessageCircle
 import { Button } from "../components/Button";
 import { useStore, genId } from "../store";
 import { PLANS } from "../data";
+import { toast } from "sonner";
 
 export function PaymentPage() {
   const { storeId } = useParams();
@@ -28,9 +29,15 @@ export function PaymentPage() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    toast.success("تم نسخ رقم الحساب");
   };
 
   const handleSubmit = async () => {
+    if (!proofUploaded) {
+      toast.error("الرجاء رفع إيصال الدفع أولاً");
+      return;
+    }
+    
     setSubmitting(true);
     await new Promise((r) => setTimeout(r, 1500));
 
@@ -54,7 +61,8 @@ export function PaymentPage() {
     });
 
     setSubmitting(false);
-    navigate("/dashboard?welcome=1");
+    toast.success(`🎉 تم تفعيل متجرك بنجاح! كود التفعيل: ${activationCode}`);
+    setTimeout(() => navigate("/dashboard?welcome=1"), 1500);
   };
 
   return (
@@ -154,8 +162,13 @@ export function PaymentPage() {
               <div className="p-4 bg-white/5 rounded-xl mb-4">
                 <p className="text-sm text-dark-400 mb-2">قم بالتحويل إلى:</p>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="font-bold text-lg tracking-wider">00799999 00123456789</span>
-                  <button onClick={() => copyToClipboard("0079999900123456789")} className="text-gold-400 hover:text-gold-300">
+                  <span className="font-bold text-lg tracking-wider">
+                    {paymentMethod === "baridimob" ? "1234567890" : "00799999 00123456789"}
+                  </span>
+                  <button 
+                    onClick={() => copyToClipboard(paymentMethod === "baridimob" ? "1234567890" : "0079999900123456789")} 
+                    className="text-gold-400 hover:text-gold-300"
+                  >
                     <Copy className="w-4 h-4" />
                   </button>
                 </div>
@@ -166,7 +179,11 @@ export function PaymentPage() {
 
               <button
                 onClick={() => setProofUploaded(true)}
-                className="w-full p-6 border-2 border-dashed border-white/20 rounded-xl hover:border-gold-400 transition-colors text-center"
+                className={`w-full p-6 border-2 border-dashed rounded-xl transition-colors text-center ${
+                  proofUploaded 
+                    ? "border-green-400 bg-green-400/10" 
+                    : "border-white/20 hover:border-gold-400"
+                }`}
               >
                 {proofUploaded ? (
                   <div className="flex items-center justify-center gap-2 text-green-400">
@@ -207,4 +224,4 @@ export function PaymentPage() {
       </div>
     </div>
   );
-}
+                  }
